@@ -94,7 +94,7 @@ body {
   float: left;
   height: 200px;
   width: 200px;
-  margin: 15px;
+  margin: 20px;
   border-radius: 50%;
 }
 
@@ -130,34 +130,6 @@ body {
   cursor: pointer;
 }
 
-.btn-header {
-  margin: 0.5em 15% 2em 15%;
-  color: white;
-  border: 2px solid #2d9cdb;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 0;
-  font-size: 1.5em;
-  font-weight: lighter;
-  padding-left: 2em;
-  padding-right: 2em;
-}
-
-.btn-header:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.btn-play {
-  display: block;
-  margin: 0 auto;
-  color: #2d9cdb;
-  font-size: 4em;
-  border-radius: 50%;
-  width: 100px;
-  height: 100px;
-  padding: 0;
-  text-align: center;
-}
-
 .btn-primary {
   color: white;
   background-color: #56ccf2;
@@ -168,39 +140,6 @@ body {
 
 .btn-primary:hover {
   background-color: #2d9cdb;
-}
-
-.tour-row {
-  border-bottom: 1px solid black;
-  padding-bottom: 1em;
-  margin-bottom: 1em;
-}
-
-.tour-row:last-child {
-  border: none;
-}
-
-.tour-item {
-  display: inline-block;
-  padding-right: 0.5em;
-}
-
-.tour-date {
-  color: #555;
-  width: 11%;
-  font-weight: bold;
-}
-
-.tour-city {
-  width: 24%;
-}
-
-.tour-arena {
-  width: 42%;
-}
-
-.tour-btn {
-  max-width: 19%;
 }
 
 .shop-item {

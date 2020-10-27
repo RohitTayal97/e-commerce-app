@@ -1,13 +1,16 @@
 const express = require("express");
 const app = express();
 const fs = require("fs");
+const mongoose = require("mongoose");
 
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").load();
 }
 
-// const stripeSecretKey = process.env.STRIPE_SECRET_KEY
-// const stripePublicKey = process.env.STRIPE_PUBLIC_KEY
+mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true });
+const db = mongoose.connection;
+db.on("error", (error) => console.error(error));
+db.once("open", () => console.log("connected to MongoDB"));
 
 app.set("view engine", "ejs");
 app.use(express.json());
@@ -41,21 +44,6 @@ app.post("/purchase", function (req, res) {
         total = total + itemJson.price * item.quantity;
         console.log(total);
       });
-
-      // stripe.charges
-      //   .create({
-      //     amount: total,
-      //     source: req.body.stripeTokenId,
-      //     currency: "usd",
-      //   })
-      //   .then(function () {
-      //     console.log("Charge Successful");
-      //     res.json({ message: "Successfully purchased items" });
-      //   })
-      //   .catch(function () {
-      //     console.log("Charge Fail");
-      //     res.status(500).end();
-      //   });
     }
   });
 });
