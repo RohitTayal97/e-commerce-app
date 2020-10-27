@@ -71,9 +71,15 @@ function ready() {
 //     }
 // })
 
+function openPopup() {
+  document.getElementsByClassName("form-pop-up")[0].style.display = "block";
+}
+
 function purchaseClicked() {
   var priceElement = document.getElementsByClassName("cart-total-price")[0];
   var price = Math.round(priceElement.innerText.replace("$", "") * 100);
+
+  openPopup();
 
   console.log(price);
   paysafe.checkout.setup(
