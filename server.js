@@ -34,11 +34,12 @@ app.get("/store", function (req, res) {
 const userRouter = require("./routes/user");
 app.use("/user", userRouter);
 
-app.listen(3000, () => {
+const paymentRouter = require("./routes/payment");
+app.use("/payment", paymentRouter);
+
+const createTokenRouter = require("./routes/createToken");
+app.use("/createtoken", createTokenRouter);
+
+app.listen(process.env.PORT || 3000, () => {
   console.log("server started");
 });
-
-module.exports = {
-  PAYSAFE_ENCODED_PUBLIC_KEY: process.env.PAYSAFE_ENCODED_PUBLIC_KEY,
-  PAYSAFE_ENCODED_PRIVATE_KEY: process.env.PAYSAFE_ENCODED_PRIVATE_KEY,
-};

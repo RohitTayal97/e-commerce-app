@@ -45,20 +45,4 @@ router.post("/", upload.none(), async (req, res) => {
   });
 });
 
-router.post("/addCustId", async (req, res) => {
-  User.updateOne(
-    { _id: req.body._id },
-    {
-      customer_id: req.body.customerId,
-    },
-    function (err, docs) {
-      if (err) {
-        res.send(err);
-      } else {
-        res.send("Success");
-      }
-    }
-  );
-});
-
 module.exports = router;
