@@ -28,90 +28,96 @@ function ready() {
     .addEventListener("click", purchaseClicked);
 }
 
-// var stripeHandler = StripeCheckout.configure({
-//     key: stripePublicKey,
-//     locale: 'en',
-//     token: function(token) {
-//         var items = []
-//         var cartItemContainer = document.getElementsByClassName('cart-items')[0]
-//         var cartRows = cartItemContainer.getElementsByClassName('cart-row')
-//         for (var i = 0; i < cartRows.length; i++) {
-//             var cartRow = cartRows[i]
-//             var quantityElement = cartRow.getElementsByClassName('cart-quantity-input')[0]
-//             var quantity = quantityElement.value
-//             var id = cartRow.dataset.itemId
-//             items.push({
-//                 id: id,
-//                 quantity: quantity
-//             })
-//         }
+var singleUseCustomerToken = null;
+const createSingleUseCustomerToken = (customerId) => {
+  var request = new XMLHttpRequest();
+  request.open(
+    "POST",
+    "https://private-anon-8467725ed3-paysafeapipaymenthubv1.apiary-proxy.com/paymenthub/v1/customers/" +
+      customerId +
+      "/singleusecustomertokens",
+    true
+  );
+  request.setRequestHeader("Content-type", "application/json");
+  request.setRequestHeader(
+    "Authorization",
+    "Basic cHJpdmF0ZS03NzUxOkItcWEyLTAtNWYwMzFjZGQtMC0zMDJkMDIxNDQ5NmJlODQ3MzJhMDFmNjkwMjY4ZDNiOGViNzJlNWI4Y2NmOTRlMjIwMjE1MDA4NTkxMzExN2YyZTFhODUzMTUwNWVlOGNjZmM4ZTk4ZGYzY2YxNzQ4"
+  );
+  request.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 201) {
+      singleUseCustomerToken = JSON.parse(request.response)
+        .singleUseCustomerToken;
+      console.log(singleUseCustomerToken);
+    }
+  };
+  request.send(
+    JSON.stringify({
+      merchantRefNum: new Date().getTime(),
+      paymentTypes: ["CARD"],
+    })
+  );
+};
 
-//         fetch('/purchase', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'Accept': 'application/json'
-//             },
-//             body: JSON.stringify({
-//                 stripeTokenId: token.id,
-//                 items: items
-//             })
-//         }).then(function(res) {
-//             return res.json()
-//         }).then(function(data) {
-//             alert(data.message)
-//             var cartItems = document.getElementsByClassName('cart-items')[0]
-//             while (cartItems.hasChildNodes()) {
-//                 cartItems.removeChild(cartItems.firstChild)
-//             }
-//             updateCartTotal()
-//         }).catch(function(error) {
-//             console.error(error)
-//         })
-//     }
-// })
+const updateCustomerId = (customerId, merchantCustomerId) => {
+  var url = "/user/addCustId";
+  var request = new XMLHttpRequest();
+  var data = {
+    customerId: customerId,
+    _id: merchantCustomerId,
+  };
+  request.open("POST", url, true);
 
-function openPopup() {
-  document.getElementsByClassName("form-pop-up")[0].style.display = "block";
-}
+  request.setRequestHeader("Content-type", "application/json");
 
-function purchaseClicked() {
-  var priceElement = document.getElementsByClassName("cart-total-price")[0];
-  var price = Math.round(priceElement.innerText.replace("$", "") * 100);
+  request.onerror = function (err) {
+    console.log(err);
+  };
 
-  openPopup();
+  request.send(JSON.stringify(data));
+};
 
-  console.log(price);
+var totalAmount = 0;
+const CreatePaymentHandle = (userObj, userIds) => {
+  if (userIds.customerId) {
+    createSingleUseCustomerToken(userIds.customerId);
+  }
+
+  const year = parseInt(userObj.get("dateOfBirth").substr(0, 4));
+  const month = parseInt(userObj.get("dateOfBirth").substr(5, 2));
+  const day = parseInt(userObj.get("dateOfBirth").substr(8));
+
   paysafe.checkout.setup(
     "cHVibGljLTc3NTE6Qi1xYTItMC01ZjAzMWNiZS0wLTMwMmQwMjE1MDA4OTBlZjI2MjI5NjU2M2FjY2QxY2I0YWFiNzkwMzIzZDJmZDU3MGQzMDIxNDUxMGJjZGFjZGFhNGYwM2Y1OTQ3N2VlZjEzZjJhZjVhZDEzZTMwNDQ=",
     {
       currency: "USD",
-      amount: price,
+      amount: totalAmount,
+      ...(singleUseCustomerToken && {
+        singleUseCustomerToken: singleUseCustomerToken,
+      }),
       locale: "en_US",
       customer: {
-        firstName: "John",
-        lastName: "Dee",
-        email: "johndee@paysafe.com",
+        firstName: userObj.get("firstName"),
+        lastName: userObj.get("lastName"),
+        email: userObj.get("email"),
         phone: "1234567890",
         dateOfBirth: {
-          day: 1,
-          month: 7,
-          year: 1990,
+          day: day,
+          month: month,
+          year: year,
         },
       },
       billingAddress: {
-        nickName: "John Dee",
-        street: "20735 Stevens Creek Blvd",
-        street2: "Montessori",
-        city: "Cupertino",
-        zip: "95014",
-        country: "US",
-        state: "CA",
+        nickName: userObj.get("firstName") + " " + userObj.get("lastName"),
+        street: userObj.get("street"),
+        city: userObj.get("city"),
+        zip: userObj.get("zip"),
+        country: userObj.get("country"),
+        state: userObj.get("state"),
       },
       environment: "TEST",
       merchantRefNum: "1559900597607",
       merchantDescriptor: {
-        dynamicDescriptor: "XYZ",
+        dynamicDescriptor: "Rohit Tayal",
         phone: "1234567890",
       },
       displayPaymentMethods: ["card"],
@@ -124,24 +130,115 @@ function purchaseClicked() {
     function (instance, error, result) {
       if (result && result.paymentHandleToken) {
         console.log(result);
-        // make AJAX call to Payments API
+        var request = new XMLHttpRequest();
+        request.open(
+          "POST",
+          "https://private-anon-8467725ed3-paysafeapipaymenthubv1.apiary-proxy.com/paymenthub/v1/payments",
+          true
+        );
+        request.setRequestHeader("Content-type", "application/json");
+        request.setRequestHeader(
+          "Authorization",
+          "Basic cHJpdmF0ZS03NzUxOkItcWEyLTAtNWYwMzFjZGQtMC0zMDJkMDIxNDQ5NmJlODQ3MzJhMDFmNjkwMjY4ZDNiOGViNzJlNWI4Y2NmOTRlMjIwMjE1MDA4NTkxMzExN2YyZTFhODUzMTUwNWVlOGNjZmM4ZTk4ZGYzY2YxNzQ4"
+        );
+        request.onreadystatechange = function () {
+          if (this.readyState == 4 && this.status == 201) {
+            const resp = JSON.parse(request.response);
+
+            if (resp.customerId && !userIds.customerId) {
+              updateCustomerId(resp.customerId, userIds.merchantCustomerId);
+            }
+
+            if (instance.isOpen()) {
+              instance.showSuccessScreen();
+              setTimeout(function () {
+                instance.close();
+              }, 3000);
+            } else {
+              alert(`Payment of ${totalAmount / 100} is Successful!`);
+            }
+            console.log("####", resp);
+          }
+        };
+        const reqObj = {
+          merchantRefNum: new Date().getTime(),
+          amount: totalAmount,
+          currencyCode: "USD",
+          ...(result.customerOperation == "ADD" &&
+            (userIds.customerId
+              ? { customerId: userIds.customerId }
+              : { merchantCustomerId: userIds.merchantCustomerId })),
+          settleWithAuth: true,
+          paymentHandleToken: result.paymentHandleToken,
+          description: "Payment at Green Day Store",
+        };
+        console.log(reqObj);
+        request.send(JSON.stringify(reqObj));
       } else {
         console.error(error);
-        // Handle the error
       }
     },
     function (stage, expired) {
+      if (expired) {
+        return;
+      }
       switch (stage) {
-        case "PAYMENT_HANDLE_NOT_CREATED": // Handle the scenario
-        case "PAYMENT_HANDLE_CREATED": // Handle the scenario
-        case "PAYMENT_HANDLE_REDIRECT": // Handle the scenario
-        case "PAYMENT_HANDLE_PAYABLE": // Handle the scenario
-        default: // Handle the scenario
+        case "PAYMENT_HANDLE_NOT_CREATED":
+          alert("Payment aborted!");
+          break;
+        case "PAYMENT_HANDLE_CREATED":
+          break;
+        case "PAYMENT_HANDLE_PAYABLE":
+          break;
+        default:
       }
     }
   );
+};
 
-  // alert("Items Purchased successfully");
+function openPopup() {
+  document.getElementsByClassName("form-pop-up")[0].style.display = "block";
+  attachFormSubmitEvent();
+}
+
+function formSubmit(event) {
+  var url = "/user";
+  var request = new XMLHttpRequest();
+  var data = new FormData(event.target);
+  request.open("POST", url, true);
+
+  request.onload = function () {
+    closeForm();
+    CreatePaymentHandle(data, JSON.parse(request.response));
+  };
+
+  request.onerror = function (err) {
+    console.log(err);
+  };
+
+  request.send(data);
+  event.preventDefault();
+}
+
+function attachFormSubmitEvent() {
+  document.getElementById("SignUpform").addEventListener("submit", formSubmit);
+}
+
+function closeForm() {
+  document.getElementsByClassName("form-pop-up")[0].style.display = "none";
+}
+
+function purchaseClicked() {
+  var priceElement = document.getElementsByClassName("cart-total-price")[0];
+  totalAmount = Math.round(priceElement.innerText.replace("$", "") * 100);
+
+  if (totalAmount != 0) {
+    openPopup();
+  } else {
+    alert("Cart is Empty!");
+  }
+
+  console.log(totalAmount);
   var cartItems = document.getElementsByClassName("cart-items")[0];
   while (cartItems.hasChildNodes()) {
     cartItems.removeChild(cartItems.firstChild);

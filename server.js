@@ -25,30 +25,20 @@ app.get("/store", function (req, res) {
       res.status(500).end();
     } else {
       res.render("store.ejs", {
-        // stripePublicKey: stripePublicKey,
         items: JSON.parse(data),
       });
     }
   });
 });
 
-app.post("/purchase", function (req, res) {
-  fs.readFile("items.json", function (error, data) {
-    if (error) {
-      res.status(500).end();
-    } else {
-      const itemsJson = JSON.parse(data);
-      const itemsArray = itemsJson.music.concat(itemsJson.merch);
-      let total = 0;
-      req.body.items.forEach(function (item) {
-        const itemJson = itemsArray.find(function (i) {
-          return i.id == item.id;
-        });
-        total = total + itemJson.price * item.quantity;
-        console.log(total);
-      });
-    }
-  });
+const userRouter = require("./routes/user");
+app.use("/user", userRouter);
+
+app.listen(3000, () => {
+  console.log("server started");
 });
 
-app.listen(3000);
+module.exports = {
+  PAYSAFE_ENCODED_PUBLIC_KEY: process.env.PAYSAFE_ENCODED_PUBLIC_KEY,
+  PAYSAFE_ENCODED_PRIVATE_KEY: process.env.PAYSAFE_ENCODED_PRIVATE_KEY,
+};

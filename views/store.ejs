@@ -68,18 +68,19 @@
       </button>
     </section>
     <div class="form-pop-up">
-      <form>
+      <form id="SignUpform">
         <h2 class="form-header">Login/SignUp</h2>
-        <input class="form-content" type="text" placeholder="first name" name="firstName" required>
-        <input class="form-content" type="text" placeholder="last name" name="lastName" required>
-        <input class="form-content" type="date" placeholder="date of birth" name="dateOfBirth" required>
-        <input class="form-content" type="email" placeholder="email" name="email" required>
-        <input class="form-content" type="text" placeholder="street" name="street" required>
-        <input class="form-content" type="text" placeholder="city" name="city" required>
-        <input class="form-content" type="text" placeholder="zip" name="zip" required>
-        <input class="form-content" type="text" placeholder="state" name="state" required>
-        <input class="form-content" type="text" placeholder="country" name="country" required>
+        <input class="form-content" type="text" placeholder="first name" maxlength="80" name="firstName" required>
+        <input class="form-content" type="text" placeholder="last name" maxlength="80" name="lastName" required>
+        <input class="form-content" type="date" name="dateOfBirth" min="1900-01-01" required>
+        <input class="form-content" type="email" placeholder="email" maxlength="255" name="email" required>
+        <input class="form-content" type="text" placeholder="street" maxlength="50" name="street" required>
+        <input class="form-content" type="text" placeholder="city" maxlength="40" name="city" required>
+        <input class="form-content" type="text" placeholder="zip" maxlength="10" name="zip" required>
+        <input class="form-content" type="text" placeholder="state" maxlength="40" name="state" required>
+        <input class="form-content" type="text" placeholder="country" maxlength="2" minlength="2" name="country" required>
         <button class="form-footer" type="submit">SignUp</button>
+        <button class="form-footer" style="margin-top: 5px" type="button" onclick="closeForm()">Close</button>
       </form>
     </div>
     <footer class="main-footer">

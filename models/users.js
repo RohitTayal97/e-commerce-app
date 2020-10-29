@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-  user_id: { type: String, required: true, unique: true },
   first_name: { type: String, required: true, maxlength: 80 },
   last_name: { type: String, required: true, maxlength: 80 },
   day_of_birth: { type: Number, required: true, max: 31 },
@@ -14,6 +13,7 @@ const userSchema = new Schema({
   zip: { type: String, required: true, maxlength: 10 },
   state: { type: String, required: true, maxlength: 40 },
   country: { type: String, required: true, maxlength: 2 },
+  customer_id: { type: String, required: false },
 });
 
 module.exports = mongoose.model("user", userSchema);
