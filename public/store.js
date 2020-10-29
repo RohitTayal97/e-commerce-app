@@ -36,26 +36,21 @@ const createSingleUseCustomerToken = (customerId) => {
     "https://private-anon-8467725ed3-paysafeapipaymenthubv1.apiary-proxy.com/paymenthub/v1/customers/" +
       customerId +
       "/singleusecustomertokens",
-    true
+    false
   );
   request.setRequestHeader("Content-type", "application/json");
   request.setRequestHeader(
     "Authorization",
     "Basic cHJpdmF0ZS03NzUxOkItcWEyLTAtNWYwMzFjZGQtMC0zMDJkMDIxNDQ5NmJlODQ3MzJhMDFmNjkwMjY4ZDNiOGViNzJlNWI4Y2NmOTRlMjIwMjE1MDA4NTkxMzExN2YyZTFhODUzMTUwNWVlOGNjZmM4ZTk4ZGYzY2YxNzQ4"
   );
-  request.onreadystatechange = function () {
-    if (this.readyState == 4 && this.status == 201) {
-      singleUseCustomerToken = JSON.parse(request.response)
-        .singleUseCustomerToken;
-      console.log(singleUseCustomerToken);
-    }
-  };
   request.send(
     JSON.stringify({
       merchantRefNum: new Date().getTime(),
       paymentTypes: ["CARD"],
     })
   );
+
+  singleUseCustomerToken = JSON.parse(request.response).singleUseCustomerToken;
 };
 
 const updateCustomerId = (customerId, merchantCustomerId) => {
@@ -70,7 +65,7 @@ const updateCustomerId = (customerId, merchantCustomerId) => {
   request.setRequestHeader("Content-type", "application/json");
 
   request.onerror = function (err) {
-    console.log(err);
+    console.error(err);
   };
 
   request.send(JSON.stringify(data));
@@ -129,7 +124,6 @@ const CreatePaymentHandle = (userObj, userIds) => {
     },
     function (instance, error, result) {
       if (result && result.paymentHandleToken) {
-        console.log(result);
         var request = new XMLHttpRequest();
         request.open(
           "POST",
@@ -157,7 +151,6 @@ const CreatePaymentHandle = (userObj, userIds) => {
             } else {
               alert(`Payment of ${totalAmount / 100} is Successful!`);
             }
-            console.log("####", resp);
           }
         };
         const reqObj = {
@@ -172,7 +165,6 @@ const CreatePaymentHandle = (userObj, userIds) => {
           paymentHandleToken: result.paymentHandleToken,
           description: "Payment at Green Day Store",
         };
-        console.log(reqObj);
         request.send(JSON.stringify(reqObj));
       } else {
         console.error(error);
@@ -213,7 +205,7 @@ function formSubmit(event) {
   };
 
   request.onerror = function (err) {
-    console.log(err);
+    console.error(err);
   };
 
   request.send(data);
@@ -238,7 +230,6 @@ function purchaseClicked() {
     alert("Cart is Empty!");
   }
 
-  console.log(totalAmount);
   var cartItems = document.getElementsByClassName("cart-items")[0];
   while (cartItems.hasChildNodes()) {
     cartItems.removeChild(cartItems.firstChild);
