@@ -28,50 +28,24 @@ function ready() {
     .addEventListener("click", purchaseClicked);
 }
 
+const PAYSAFE_ENCODED_PUBLIC_KEY =
+  "cHVibGljLTc3NTE6Qi1xYTItMC01ZjAzMWNiZS0wLTMwMmQwMjE1MDA4OTBlZjI2MjI5NjU2M2FjY2QxY2I0YWFiNzkwMzIzZDJmZDU3MGQzMDIxNDUxMGJjZGFjZGFhNGYwM2Y1OTQ3N2VlZjEzZjJhZjVhZDEzZTMwNDQ=";
+var totalAmount = 0;
 var singleUseCustomerToken = null;
+
 const createSingleUseCustomerToken = (customerId) => {
   var request = new XMLHttpRequest();
-  request.open(
-    "POST",
-    "https://private-anon-8467725ed3-paysafeapipaymenthubv1.apiary-proxy.com/paymenthub/v1/customers/" +
-      customerId +
-      "/singleusecustomertokens",
-    false
-  );
+  request.open("POST", "/createtoken", false);
   request.setRequestHeader("Content-type", "application/json");
-  request.setRequestHeader(
-    "Authorization",
-    "Basic cHJpdmF0ZS03NzUxOkItcWEyLTAtNWYwMzFjZGQtMC0zMDJkMDIxNDQ5NmJlODQ3MzJhMDFmNjkwMjY4ZDNiOGViNzJlNWI4Y2NmOTRlMjIwMjE1MDA4NTkxMzExN2YyZTFhODUzMTUwNWVlOGNjZmM4ZTk4ZGYzY2YxNzQ4"
-  );
   request.send(
     JSON.stringify({
-      merchantRefNum: new Date().getTime(),
-      paymentTypes: ["CARD"],
+      customerId: customerId,
     })
   );
 
   singleUseCustomerToken = JSON.parse(request.response).singleUseCustomerToken;
 };
 
-const updateCustomerId = (customerId, merchantCustomerId) => {
-  var url = "/user/addCustId";
-  var request = new XMLHttpRequest();
-  var data = {
-    customerId: customerId,
-    _id: merchantCustomerId,
-  };
-  request.open("POST", url, true);
-
-  request.setRequestHeader("Content-type", "application/json");
-
-  request.onerror = function (err) {
-    console.error(err);
-  };
-
-  request.send(JSON.stringify(data));
-};
-
-var totalAmount = 0;
 const CreatePaymentHandle = (userObj, userIds) => {
   if (userIds.customerId) {
     createSingleUseCustomerToken(userIds.customerId);
@@ -82,7 +56,7 @@ const CreatePaymentHandle = (userObj, userIds) => {
   const day = parseInt(userObj.get("dateOfBirth").substr(8));
 
   paysafe.checkout.setup(
-    "cHVibGljLTc3NTE6Qi1xYTItMC01ZjAzMWNiZS0wLTMwMmQwMjE1MDA4OTBlZjI2MjI5NjU2M2FjY2QxY2I0YWFiNzkwMzIzZDJmZDU3MGQzMDIxNDUxMGJjZGFjZGFhNGYwM2Y1OTQ3N2VlZjEzZjJhZjVhZDEzZTMwNDQ=",
+    PAYSAFE_ENCODED_PUBLIC_KEY,
     {
       currency: "USD",
       amount: totalAmount,
@@ -125,24 +99,10 @@ const CreatePaymentHandle = (userObj, userIds) => {
     function (instance, error, result) {
       if (result && result.paymentHandleToken) {
         var request = new XMLHttpRequest();
-        request.open(
-          "POST",
-          "https://private-anon-8467725ed3-paysafeapipaymenthubv1.apiary-proxy.com/paymenthub/v1/payments",
-          true
-        );
+        request.open("POST", "/payment", true);
         request.setRequestHeader("Content-type", "application/json");
-        request.setRequestHeader(
-          "Authorization",
-          "Basic cHJpdmF0ZS03NzUxOkItcWEyLTAtNWYwMzFjZGQtMC0zMDJkMDIxNDQ5NmJlODQ3MzJhMDFmNjkwMjY4ZDNiOGViNzJlNWI4Y2NmOTRlMjIwMjE1MDA4NTkxMzExN2YyZTFhODUzMTUwNWVlOGNjZmM4ZTk4ZGYzY2YxNzQ4"
-        );
         request.onreadystatechange = function () {
-          if (this.readyState == 4 && this.status == 201) {
-            const resp = JSON.parse(request.response);
-
-            if (resp.customerId && !userIds.customerId) {
-              updateCustomerId(resp.customerId, userIds.merchantCustomerId);
-            }
-
+          if (this.readyState == 4 && this.status == 200) {
             if (instance.isOpen()) {
               instance.showSuccessScreen();
               setTimeout(function () {
@@ -154,23 +114,27 @@ const CreatePaymentHandle = (userObj, userIds) => {
           }
         };
         const reqObj = {
-          merchantRefNum: new Date().getTime(),
           amount: totalAmount,
-          currencyCode: "USD",
-          ...(result.customerOperation == "ADD" &&
-            (userIds.customerId
-              ? { customerId: userIds.customerId }
-              : { merchantCustomerId: userIds.merchantCustomerId })),
-          settleWithAuth: true,
+          customerOperation: result.customerOperation,
+          customerId: userIds.customerId,
+          merchantCustomerId: userIds.merchantCustomerId,
           paymentHandleToken: result.paymentHandleToken,
-          description: "Payment at Green Day Store",
         };
         request.send(JSON.stringify(reqObj));
       } else {
+        if (instance) {
+          instance.showFailureScreen();
+          setTimeout(function () {
+            instance.close();
+          }, 3000);
+        }
         console.error(error);
       }
     },
     function (stage, expired) {
+      totalAmount = 0;
+      singleUseCustomerToken = null;
+
       if (expired) {
         return;
       }
