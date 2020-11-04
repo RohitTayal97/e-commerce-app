@@ -8,15 +8,7 @@
     <script src="https://hosted.paysafe.com/checkout/v2/paysafe.checkout.min.js"></script>
   </head>
   <body>
-    <header class="main-header">
-      <nav class="main-nav nav">
-        <ul>
-          <li><a href="/">HOME</a></li>
-          <li><a href="/store">STORE</a></li>
-        </ul>
-      </nav>
-      <h1 class="band-name band-name-large">Green Day</h1>
-    </header>
+    <%- include('partials/header') %>
     <section class="container content-section">
       <h2 class="section-header">MUSIC</h2>
       <div class="shop-items">
@@ -69,7 +61,7 @@
     </section>
     <div class="form-pop-up">
       <form id="SignUpform">
-        <h2 class="form-header">Login/SignUp</h2>
+        <h2 class="form-header">Login | Sign Up</h2>
         <input class="form-content" type="text" placeholder="first name" maxlength="80" name="firstName" required>
         <input class="form-content" type="text" placeholder="last name" maxlength="80" name="lastName" required>
         <input class="form-content" type="date" name="dateOfBirth" min="1900-01-01" required>
@@ -77,33 +69,12 @@
         <input class="form-content" type="text" placeholder="street" maxlength="50" name="street" required>
         <input class="form-content" type="text" placeholder="city" maxlength="40" name="city" required>
         <input class="form-content" type="text" placeholder="zip" maxlength="10" name="zip" required>
-        <input class="form-content" type="text" placeholder="state" maxlength="40" name="state" required>
-        <input class="form-content" type="text" placeholder="country" maxlength="2" minlength="2" name="country" required>
-        <button class="form-footer" type="submit">SignUp</button>
-        <button class="form-footer" style="margin-top: 5px" type="button" onclick="closeForm()">Close</button>
+        <input class="form-content" type="text" placeholder="state code like CA for California" maxlength="40" name="state" required>
+        <input class="form-content" type="text" placeholder="country code like US for America" maxlength="2" minlength="2" name="country" required>
+        <button class="form-footer btn btn-primary" type="submit">Sign Up</button>
+        <button class="form-footer btn btn-primary" style="margin-top: 5px" type="button" onclick="closeForm()">Close</button>
       </form>
     </div>
-    <footer class="main-footer">
-      <div class="container main-footer-container">
-        <h3 class="band-name">Green Day</h3>
-        <ul class="nav footer-nav">
-          <li>
-            <a href="https://www.youtube.com" target="_blank">
-              <img src="Images/YouTube Logo.png" />
-            </a>
-          </li>
-          <li>
-            <a href="https://www.spotify.com" target="_blank">
-              <img src="Images/Spotify Logo.png" />
-            </a>
-          </li>
-          <li>
-            <a href="https://www.facebook.com" target="_blank">
-              <img src="Images/Facebook Logo.png" />
-            </a>
-          </li>
-        </ul>
-      </div>
-    </footer>
+    <%- include('partials/footer') %>
   </body>
 </html>

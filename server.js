@@ -19,6 +19,10 @@ app.set("view engine", "ejs");
 app.use(express.json());
 app.use(express.static("public"));
 
+app.get("/", function (req, res) {
+  res.render("index.ejs");
+});
+
 app.get("/store", function (req, res) {
   fs.readFile("items.json", function (error, data) {
     if (error) {

@@ -111,6 +111,8 @@ const CreatePaymentHandle = (userObj, userIds) => {
             } else {
               alert(`Payment of ${totalAmount / 100} is Successful!`);
             }
+          } else if (this.status != 200) {
+            alert("Payment Declined!");
           }
         };
         const reqObj = {
@@ -127,8 +129,9 @@ const CreatePaymentHandle = (userObj, userIds) => {
           setTimeout(function () {
             instance.close();
           }, 3000);
+        } else {
+          alert(error.detailedMessage);
         }
-        console.error(error);
       }
     },
     function (stage, expired) {
