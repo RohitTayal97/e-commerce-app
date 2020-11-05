@@ -91,9 +91,7 @@ const CreatePaymentHandle = (userObj, userIds) => {
       },
       displayPaymentMethods: ["card"],
       paymentMethodDetails: {
-        paysafecard: {
-          consumerId: "1232323",
-        },
+        card: {},
       },
     },
     function (instance, error, result) {
@@ -133,6 +131,7 @@ const CreatePaymentHandle = (userObj, userIds) => {
           alert(error.detailedMessage);
         }
       }
+      stopLoading();
     },
     function (stage, expired) {
       totalAmount = 0;
@@ -144,6 +143,7 @@ const CreatePaymentHandle = (userObj, userIds) => {
       switch (stage) {
         case "PAYMENT_HANDLE_NOT_CREATED":
           alert("Payment aborted!");
+          stopLoading();
           break;
         case "PAYMENT_HANDLE_CREATED":
           break;
@@ -155,9 +155,19 @@ const CreatePaymentHandle = (userObj, userIds) => {
   );
 };
 
-function openPopup() {
-  document.getElementsByClassName("form-pop-up")[0].style.display = "block";
+function openForm() {
+  document.getElementsByClassName("form-container")[0].style.display = "block";
   attachFormSubmitEvent();
+}
+
+function startLoading() {
+  document.getElementsByClassName("loading-container")[0].style.display =
+    "block";
+}
+
+function stopLoading() {
+  document.getElementsByClassName("loading-container")[0].style.display =
+    "none";
 }
 
 function formSubmit(event) {
@@ -168,6 +178,7 @@ function formSubmit(event) {
 
   request.onload = function () {
     closeForm();
+    startLoading();
     CreatePaymentHandle(data, JSON.parse(request.response));
   };
 
@@ -184,7 +195,7 @@ function attachFormSubmitEvent() {
 }
 
 function closeForm() {
-  document.getElementsByClassName("form-pop-up")[0].style.display = "none";
+  document.getElementsByClassName("form-container")[0].style.display = "none";
 }
 
 function purchaseClicked() {
@@ -192,7 +203,7 @@ function purchaseClicked() {
   totalAmount = Math.round(priceElement.innerText.replace("$", "") * 100);
 
   if (totalAmount != 0) {
-    openPopup();
+    openForm();
   } else {
     alert("Cart is Empty!");
   }
@@ -230,17 +241,19 @@ function addToCartClicked(event) {
 }
 
 function addItemToCart(title, price, imageSrc, id) {
-  var cartRow = document.createElement("div");
-  cartRow.classList.add("cart-row");
-  cartRow.dataset.itemId = id;
-  var cartItems = document.getElementsByClassName("cart-items")[0];
-  var cartItemNames = cartItems.getElementsByClassName("cart-item-title");
-  for (var i = 0; i < cartItemNames.length; i++) {
-    if (cartItemNames[i].innerText == title) {
-      alert("This item is already added to the cart");
+  var cartItemContainer = document.getElementsByClassName("cart-items")[0];
+  var cartRows = cartItemContainer.getElementsByClassName("cart-row");
+  for (var i = 0; i < cartRows.length; i++) {
+    if (cartRows[i].dataset.itemId == id) {
+      cartRows[i].getElementsByClassName("cart-quantity-input")[0].value++;
       return;
     }
   }
+
+  var cartRow = document.createElement("div");
+  cartRow.classList.add("cart-row");
+  cartRow.dataset.itemId = id;
+
   var cartRowContents = `
         <div class="cart-item cart-column">
             <img class="cart-item-image" src="${imageSrc}" width="100" height="100">
@@ -252,7 +265,7 @@ function addItemToCart(title, price, imageSrc, id) {
             <button class="btn btn-danger" type="button">REMOVE</button>
         </div>`;
   cartRow.innerHTML = cartRowContents;
-  cartItems.append(cartRow);
+  cartItemContainer.append(cartRow);
   cartRow
     .getElementsByClassName("btn-danger")[0]
     .addEventListener("click", removeCartItem);

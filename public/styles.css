@@ -123,8 +123,20 @@ body {
   height: 30px;
 }
 
-.form-pop-up {
+.popup-container {
+  position: fixed;
+  background-color: rgba(90, 90, 90, 0.5);
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+.form-container {
   display: none;
+}
+
+.form-pop-up {
   background-color: white;
   border: 3px solid #f1f1f1;
   position: fixed;
@@ -155,7 +167,7 @@ body {
   width: 100%;
   font-size: 1.1em;
   height: 40px;
-  margin: 10% 0 0 0;
+  margin: 7% 0 0 0;
 }
 
 .btn {
@@ -312,4 +324,29 @@ body {
   display: block;
   margin: 40px auto 80px auto;
   font-size: 1.75em;
+}
+
+.loading-container {
+  display: none;
+}
+
+.loader {
+  top: 40%;
+  left: 45%;
+  position: fixed;
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #2478c7;
+  width: 120px;
+  height: 120px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
