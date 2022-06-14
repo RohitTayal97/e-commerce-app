@@ -33,23 +33,33 @@ const PAYSAFE_ENCODED_PUBLIC_KEY =
 var totalAmount = 0;
 var singleUseCustomerToken = null;
 
-const createSingleUseCustomerToken = (customerId) => {
-  var request = new XMLHttpRequest();
-  request.open("POST", "/createtoken", false);
-  request.setRequestHeader("Content-type", "application/json");
-  request.send(
-    JSON.stringify({
-      customerId: customerId,
-    })
-  );
+const createSingleUseCustomerTokenAndPaymentHandle = (formData, userIds) => {
+  const reqObj = {
+    customerId: userIds.customerId
+  };
 
-  singleUseCustomerToken = JSON.parse(request.response).singleUseCustomerToken;
+  const reqConfig = {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+
+  axios.post(
+    '/createtoken',
+    reqObj,
+    reqConfig
+  )
+  .then(response => {
+    singleUseCustomerToken = response.data.singleUseCustomerToken;
+    CreatePaymentHandle(formData, userIds);
+  })
+  .catch(error => {
+    alert("Please Retry!");
+    stopLoading();
+  })
 };
 
 const CreatePaymentHandle = (userObj, userIds) => {
-  if (userIds.customerId) {
-    createSingleUseCustomerToken(userIds.customerId);
-  }
 
   const year = parseInt(userObj.get("dateOfBirth").substr(0, 4));
   const month = parseInt(userObj.get("dateOfBirth").substr(5, 2));
@@ -84,7 +94,7 @@ const CreatePaymentHandle = (userObj, userIds) => {
         state: userObj.get("state"),
       },
       environment: "TEST",
-      merchantRefNum: "1559900597607",
+      merchantRefNum: `${new Date().getTime()}`,
       merchantDescriptor: {
         dynamicDescriptor: "Rohit Tayal",
         phone: "1234567890",
@@ -96,23 +106,6 @@ const CreatePaymentHandle = (userObj, userIds) => {
     },
     function (instance, error, result) {
       if (result && result.paymentHandleToken) {
-        var request = new XMLHttpRequest();
-        request.open("POST", "/payment", true);
-        request.setRequestHeader("Content-type", "application/json");
-        request.onreadystatechange = function () {
-          if (this.readyState == 4 && this.status == 200) {
-            if (instance.isOpen()) {
-              instance.showSuccessScreen();
-              setTimeout(function () {
-                instance.close();
-              }, 3000);
-            } else {
-              alert(`Payment of ${totalAmount / 100} is Successful!`);
-            }
-          } else if (this.status != 200) {
-            alert("Payment Declined!");
-          }
-        };
         const reqObj = {
           amount: totalAmount,
           customerOperation: result.customerOperation,
@@ -120,7 +113,31 @@ const CreatePaymentHandle = (userObj, userIds) => {
           merchantCustomerId: userIds.merchantCustomerId,
           paymentHandleToken: result.paymentHandleToken,
         };
-        request.send(JSON.stringify(reqObj));
+      
+        const reqConfig = {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+      
+        axios.post(
+          '/payment',
+          reqObj,
+          reqConfig
+        )
+        .then(response => {
+          if (instance.isOpen()) {
+            instance.showSuccessScreen();
+            setTimeout(function () {
+              instance.close();
+            }, 3000);
+          } else {
+            alert(`Payment of ${totalAmount / 100} is Successful!`);
+          }
+        })
+        .catch(error => {
+          alert("Payment Declined!");
+        })
       } else {
         if (instance) {
           instance.showFailureScreen();
@@ -171,22 +188,25 @@ function stopLoading() {
 }
 
 function formSubmit(event) {
-  var url = "/user";
-  var request = new XMLHttpRequest();
-  var data = new FormData(event.target);
-  request.open("POST", url, true);
+  const formData = new FormData(event.target);
 
-  request.onload = function () {
+  axios.post(
+    '/user',
+    formData
+  )
+  .then(response => {
     closeForm();
     startLoading();
-    CreatePaymentHandle(data, JSON.parse(request.response));
-  };
-
-  request.onerror = function (err) {
+    if (response.data.customerId) {
+      createSingleUseCustomerTokenAndPaymentHandle(formData, response.data);
+    } else {
+      CreatePaymentHandle(formData, response.data);
+    }
+  })
+  .catch(error => {
     console.error(err);
-  };
+  })
 
-  request.send(data);
   event.preventDefault();
 }
 
@@ -197,6 +217,10 @@ function attachFormSubmitEvent() {
 function closeForm() {
   document.getElementsByClassName("form-container")[0].style.display = "none";
 }
+
+// function openLoginForm() {
+  
+// }
 
 function purchaseClicked() {
   var priceElement = document.getElementsByClassName("cart-total-price")[0];

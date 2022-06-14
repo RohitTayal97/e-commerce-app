@@ -189,6 +189,22 @@ body {
   background-color: #2d9cdb;
 }
 
+.close {
+  position: absolute;
+  top: 2.5%;
+  right: 5%;
+  color: black;
+  cursor: pointer;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 700,
+  'GRAD' 200,
+  'opsz' 48;
+}
+
 .shop-item {
   margin: 30px;
 }
